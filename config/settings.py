@@ -1,11 +1,10 @@
 # Файл с настройками бота
-import configparser
+from dotenv import load_dotenv
+import os
 
-config = configparser.ConfigParser()
-
-config.read('config\settings.ini')
+load_dotenv()
 
 
-LOG_DIR = config.get('Loging', 'LOG_DIR')
-SEND_INTERVAL_MIN = config.getint('Advertising', 'SEND_INTERVAL_MIN') * 60 
-USE_AD = config.getboolean('Advertising', 'USE_AD')
+LOG_DIR = os.getenv('LOG_DIR')
+SEND_INTERVAL_MIN = os.getenv('SEND_INTERVAL_MIN')
+USE_AD = os.getenv('USE_AD')

@@ -27,9 +27,9 @@ async def download_tiktok(url, output_path="downloads", message=None, format="mp
                     os.remove(mp3_filename)
 
                 elif format == "mp4":
-                    await message.answer_video(video=types.InputFile(filename))  
+                    await message.answer_video(video=types.InputFile(filename))
                     os.remove(filename)
-                    
+
         else:
             logging.error(f"Error downloading TikTok video. HTTP status code: {response.status_code}")
     except FileNotFoundError:
@@ -46,7 +46,7 @@ async def convert_video_to_mp3(video_path, output_path):
 
 async def download_youtube(url, output_path="downloads", message=None, format="mp4"):
     options = {
-        'format': 'bestvideo[filesize<50M]+bestaudio/best[filesize<50M]',
+        'format': 'best[filesize<50M]',
         'outtmpl': f'{output_path}/%(title)s.%(ext)s',
     }
 

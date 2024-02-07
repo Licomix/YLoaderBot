@@ -5,3 +5,4 @@ youtube-search-python
 spotipy
 yt_dlp
 moviepy
+python-dotenv

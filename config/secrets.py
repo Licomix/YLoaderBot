@@ -1,13 +1,10 @@
 # Файл с секретными данными (токены, ключи и т.д.)
-import configparser
+from dotenv import load_dotenv
+import os
 
-config = configparser.ConfigParser()
+load_dotenv()
 
-config.read('config\secrets.ini')
+BOT_TOKEN = os.getenv('BOT_TOKEN')
 
-
-BOT_TOKEN = config.get('Bot', 'BOT_TOKEN')
-ADMIN_ID = config.get('Admin', 'ADMIN_ID')
-
-spotify_client_id = config.get('Spotify', 'client_id')
-spotify_secret = config.get('Spotify', 'secret')
+spotify_client_id = os.getenv('client_id')
+spotify_secret = os.getenv('secret')

@@ -24,7 +24,7 @@ async def download_soundcloud(url, output_path="downloads", message=None):
     }
 
     try:
-        with youtube_dl.YoutubeDL(options) as ydl:
+        with yt_dlp.YoutubeDL(options) as ydl:
             info_dict = ydl.extract_info(url, download=False)
             title = info_dict.get('title', 'audio')
             filename = ydl.prepare_filename(info_dict)
@@ -69,7 +69,7 @@ async def download_spotify(url, output_path="downloads", message=None):
     }
 
     try:
-        with youtube_dl.YoutubeDL(options) as ydl:
+        with yt_dlp.YoutubeDL(options) as ydl:
             ydl.download([videoresult])
 
         if os.path.exists(filename) and message:
@@ -81,7 +81,8 @@ async def download_spotify(url, output_path="downloads", message=None):
 
 #### Общая информация
 
-- Для загрузки аудио с SoundCloud используется библиотека `youtube_dl`.
+- Для загрузки аудио с SoundCloud используется библиотека `yt_dlp`.
 - Для загрузки аудио с Spotify используется библиотеки `spotipy` и `youtubesearchpython`.
+- Для загрузки аудио с Apple Music используется библиотеки `requests` и `youtubesearchpython`.
 - Загруженные аудио сохраняются в указанной директории, и, если указан параметр `message`, отправляются пользователю.
 - В обеих функциях аудио сохраняется в формате MP3.
