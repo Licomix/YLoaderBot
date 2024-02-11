@@ -1,7 +1,7 @@
 tests
 logs/*
 media/*
-database/bot.db  
+database/bot.db
 <<<<<<< HEAD
 config/secrets.py
 /Python
@@ -19,3 +19,5 @@ utils/__pycache__
 =======
 >>>>>>> main
 >>>>>>> main
+config/.env
+.DS_Store

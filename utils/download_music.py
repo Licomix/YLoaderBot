@@ -1,3 +1,4 @@
+import logging
 import os
 import requests
 import yt_dlp
@@ -42,7 +43,8 @@ async def download_soundcloud(url, output_path="downloads", message=None):
             os.remove(thumbnail_filename)
             os.remove(f"{thumbnail_filename}.jpg")
     except Exception as e:
-        print(f"Error: {e}")
+        logging.error(f"Error downloading YouTube Audio: {str(e)}")
+        logging.error(f"HTTP response: {e.response.text if e.response else 'No response'}")
 
 async def download_spotify(url, output_path="downloads", message=None):
     result = spotify.track(url)
@@ -52,17 +54,23 @@ async def download_spotify(url, output_path="downloads", message=None):
     videosSearch = VideosSearch(f'{performers} - {music}', limit=1)
     videoresult = videosSearch.result()["result"][0]["link"]
 
-    filename = f'{output_path}/{performers}_{music}.mp3'
+    filename = f'{output_path}/{performers} - {music}'
     thumbnail_filename = f'{output_path}/{performers}_{music}'
+
     options = {
-        'format': 'bestaudio/best',
+        'format': 'm4a/bestaudio/best',
         'outtmpl': filename,
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+        }]
     }
 
     try:
         with yt_dlp.YoutubeDL(options) as ydl:
             info_dict = ydl.extract_info(videoresult, download=False)
             ydl.download([videoresult])
+        filename = f'{filename}.mp3'
 
         if os.path.exists(filename) and message:
             thumbnail_path = info_dict.get('thumbnails')[-1]['url'] if 'thumbnails' in info_dict else None
@@ -72,13 +80,13 @@ async def download_spotify(url, output_path="downloads", message=None):
                 with open(thumbnail_filename, 'wb') as thumbnail_file:
                     thumbnail_file.write(thumbnail_response.content)
 
-            await message.answer_audio(audio=types.InputFile(filename), thumb=types.InputFile(thumbnail_filename))
+        await message.answer_audio(audio=types.InputFile(f'{filename}'), thumb=types.InputFile(thumbnail_filename))
 
-        os.remove(filename)
+        os.remove(f'{filename}')
         os.remove(thumbnail_filename)
-        os.remove(f"{thumbnail_filename}.mp3.webp")
     except Exception as e:
-        print(f"Error: {e}")
+        logging.error(f"Error downloading YouTube Audio: {str(e)}")
+        logging.error(f"HTTP response: {e.response.text if e.response else 'No response'}")
 
 async def download_apple_music(url, output_path="downloads", message=None):
     song_id = url.split('i=')[-1]
@@ -98,17 +106,22 @@ async def download_apple_music(url, output_path="downloads", message=None):
             videos_search = VideosSearch(f'{performers} - {music}', limit=1)
             video_result = videos_search.result()["result"][0]["link"]
 
-            filename = f'{output_path}/{performers}-{music}.mp3'
+            filename = f'{output_path}/{performers} - {music}'
             thumbnail_filename = f'{output_path}/{performers}_{music}'
 
             options = {
-                'format': 'bestaudio/best',
-                'outtmpl': filename,
+            'format': 'm4a/bestaudio/best',
+            'outtmpl': filename,
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+            }]
             }
 
             with yt_dlp.YoutubeDL(options) as ydl:
                 info_dict = ydl.extract_info(video_result, download=False)
                 ydl.download([video_result])
+            filename = f'{filename}.mp3'
 
             if os.path.exists(filename) and message:
                 thumbnail_path = info_dict.get('thumbnails')[-1]['url'] if 'thumbnails' in info_dict else None
@@ -122,10 +135,10 @@ async def download_apple_music(url, output_path="downloads", message=None):
 
                 os.remove(filename)
                 os.remove(thumbnail_filename)
-                os.remove(f"{thumbnail_filename}.mp3.webp")
 
         else:
-            print("Информация о треке не найдена.")
+            await message.send('Информация о трэке не найдена')
 
     except Exception as e:
-        print(f"Неожиданная ошибка: {e}")
+        logging.error(f"Error downloading YouTube Audio: {str(e)}")
+        logging.error(f"HTTP response: {e.response.text if e.response else 'No response'}")
