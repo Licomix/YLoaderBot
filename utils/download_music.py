@@ -7,8 +7,6 @@ import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 from youtubesearchpython import VideosSearch
 from config.secrets import spotify_client_id, spotify_secret
-from PIL import Image
-from io import BytesIO
 
 auth_manager = SpotifyClientCredentials(client_id=spotify_client_id, client_secret=spotify_secret)
 spotify = spotipy.Spotify(auth_manager=auth_manager)
@@ -35,24 +33,15 @@ async def download_soundcloud(url, output_path="downloads", message=None):
 
             # Сохраняем обложку
             if thumbnail_path:
-                    thumbnail_response = requests.get(thumbnail_path)
+                thumbnail_response = requests.get(thumbnail_path)
+                with open(thumbnail_filename, 'wb') as thumbnail_file:
+                    thumbnail_file.write(thumbnail_response.content)
 
-                    with BytesIO(thumbnail_response.content) as thumbnail_file:
-                        original_image = Image.open(thumbnail_file)
-                        width, height = original_image.size
-                        new_size = min(width, height)
-                        left = (width - new_size) / 2
-                        top = (height - new_size) / 2
-                        right = (width + new_size) / 2
-                        bottom = (height + new_size) / 2
-                        cropped_image = original_image.crop((left, top, right, bottom))
+            await message.answer_audio(audio=types.InputFile(filename), thumb=types.InputFile(thumbnail_filename))
 
-                        cropped_image.save(f"{thumbnail_filename}.jpg")
-
-        await message.answer_audio(audio=types.InputFile(f'{filename}'), thumb=types.InputFile(f"{thumbnail_filename}.jpg"))
-
-        os.remove(f'{filename}')
-        os.remove(f"{thumbnail_filename}.jpg")
+            os.remove(filename)
+            os.remove(thumbnail_filename)
+            os.remove(f"{thumbnail_filename}.jpg")
     except Exception as e:
         logging.error(f"Error downloading YouTube Audio: {str(e)}")
         logging.error(f"HTTP response: {e.response.text if e.response else 'No response'}")
@@ -87,24 +76,14 @@ async def download_spotify(url, output_path="downloads", message=None):
             thumbnail_path = info_dict.get('thumbnails')[-1]['url'] if 'thumbnails' in info_dict else None
 
             if thumbnail_path:
-                    thumbnail_response = requests.get(thumbnail_path)
+                thumbnail_response = requests.get(thumbnail_path)
+                with open(thumbnail_filename, 'wb') as thumbnail_file:
+                    thumbnail_file.write(thumbnail_response.content)
 
-                    with BytesIO(thumbnail_response.content) as thumbnail_file:
-                        original_image = Image.open(thumbnail_file)
-                        width, height = original_image.size
-                        new_size = min(width, height)
-                        left = (width - new_size) / 2
-                        top = (height - new_size) / 2
-                        right = (width + new_size) / 2
-                        bottom = (height + new_size) / 2
-                        cropped_image = original_image.crop((left, top, right, bottom))
-
-                        cropped_image.save(f"{thumbnail_filename}.jpg")
-
-        await message.answer_audio(audio=types.InputFile(f'{filename}'), thumb=types.InputFile(f"{thumbnail_filename}.jpg"))
+        await message.answer_audio(audio=types.InputFile(f'{filename}'), thumb=types.InputFile(thumbnail_filename))
 
         os.remove(f'{filename}')
-        os.remove(f"{thumbnail_filename}.jpg")
+        os.remove(thumbnail_filename)
     except Exception as e:
         logging.error(f"Error downloading YouTube Audio: {str(e)}")
         logging.error(f"HTTP response: {e.response.text if e.response else 'No response'}")
