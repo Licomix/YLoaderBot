@@ -5,6 +5,8 @@ import re
 from aiogram import types
 import requests
 from moviepy.editor import VideoFileClip
+from PIL import Image
+from io import BytesIO
 
 async def download_tiktok(url, output_path="downloads", message=None, format="mp4"):
     url = requests.get(url)
@@ -88,13 +90,23 @@ async def download_youtube(url, output_path="downloads", message=None, format="m
                     # Сохраняем обложку
                     if thumbnail_path:
                         thumbnail_response = requests.get(thumbnail_path)
-                        with open(thumbnail_filename, 'wb') as thumbnail_file:
-                            thumbnail_file.write(thumbnail_response.content)
 
-                await message.answer_audio(audio=types.InputFile(filename), thumb=types.InputFile(thumbnail_filename))
+                        with BytesIO(thumbnail_response.content) as thumbnail_file:
+                            original_image = Image.open(thumbnail_file)
+                            width, height = original_image.size
+                            new_size = min(width, height)
+                            left = (width - new_size) / 2
+                            top = (height - new_size) / 2
+                            right = (width + new_size) / 2
+                            bottom = (height + new_size) / 2
+                            cropped_image = original_image.crop((left, top, right, bottom))
+
+                            cropped_image.save(f"{thumbnail_filename}.jpg")
+
+                await message.answer_audio(audio=types.InputFile(filename), thumb=types.InputFile(f"{thumbnail_filename}.jpg"))
 
                 os.remove(filename)
-                os.remove(thumbnail_filename)
+                os.remove(f"{thumbnail_filename}.jpg")
 
             except Exception as e:
                 logging.error(f"Error downloading YouTube Audio: {str(e)}")
