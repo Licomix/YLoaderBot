@@ -49,13 +49,14 @@ async def download_soundcloud(url, output_path="downloads", message=None):
 
                         cropped_image.save(f"{thumbnail_filename}.jpg")
 
-        await message.answer_audio(audio=types.InputFile(f'{filename}'), thumb=types.InputFile(f"{thumbnail_filename}.jpg"))
+        await message.answer_audio(audio=types.InputFile(filename), thumb=types.InputFile(f"{thumbnail_filename}.jpg"))
 
-        os.remove(f'{filename}')
+        os.remove(filename)
         os.remove(f"{thumbnail_filename}.jpg")
     except Exception as e:
         logging.error(f"Error downloading YouTube Audio: {str(e)}")
         logging.error(f"HTTP response: {e.response.text if e.response else 'No response'}")
+        await message.answer(text="Ошибка при скачивании с SoundCloud")
 
 async def download_spotify(url, output_path="downloads", message=None):
     result = spotify.track(url)
@@ -101,13 +102,14 @@ async def download_spotify(url, output_path="downloads", message=None):
 
                         cropped_image.save(f"{thumbnail_filename}.jpg")
 
-        await message.answer_audio(audio=types.InputFile(f'{filename}'), thumb=types.InputFile(f"{thumbnail_filename}.jpg"))
+        await message.answer_audio(audio=types.InputFile(filename), thumb=types.InputFile(f"{thumbnail_filename}.jpg"))
 
-        os.remove(f'{filename}')
+        os.remove(filename)
         os.remove(f"{thumbnail_filename}.jpg")
     except Exception as e:
         logging.error(f"Error downloading YouTube Audio: {str(e)}")
         logging.error(f"HTTP response: {e.response.text if e.response else 'No response'}")
+        await message.answer(text="Ошибка при скачивании с Spotify")
 
 async def download_apple_music(url, output_path="downloads", message=None):
     song_id = url.split('i=')[-1]
@@ -163,3 +165,4 @@ async def download_apple_music(url, output_path="downloads", message=None):
     except Exception as e:
         logging.error(f"Error downloading YouTube Audio: {str(e)}")
         logging.error(f"HTTP response: {e.response.text if e.response else 'No response'}")
+        await message.answer(text="Ошибка при скачивании с Apple Music")
