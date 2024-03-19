@@ -1,49 +1,39 @@
-import re
-import logging
+import os
 import asyncio
-from aiogram import Bot, Dispatcher, types
-from aiogram import executor
-from aiogram.contrib.fsm_storage.memory import MemoryStorage  
-from config.secrets import BOT_TOKEN
-from config.settings import USE_AD
-from bot.handlers import start, help, url
-from bot.admin import log, ad
-from utils import helpers
-from utils.ad_timer import send_advertisements
+import importlib.util
+from aiogram import Bot, Dispatcher
+from aiogram.enums import ParseMode
 
-# Initialize MemoryStorage
-storage = MemoryStorage()
+from config.config_manager import ConfigManager
+from utils.logger import Logger
 
-# Initialize bot and dispatcher with MemoryStorage
-bot = Bot(token=BOT_TOKEN, parse_mode=types.ParseMode.HTML)
-dp = Dispatcher(bot, storage=storage)
+from bot.user.handlers.router.user_router import user_router
 
-# Logging start of the bot
-logging.info('Bot has been started')
+config_manager = ConfigManager()
+TOKEN = config_manager.get_config_value('Bot', 'BotToken')
 
-# Function to register handlers
-async def register_handlers():
-    # Хендлеры команд
-    dp.register_message_handler(start.start_command, commands=['start', 'about'])
-    dp.register_message_handler(help.help_command, commands=['help', 'info'])
-    dp.register_message_handler(log.log_command, commands=['log'])
-    dp.register_message_handler(ad.cmd_start_advertise, commands=['ad_start'])
-    dp.register_message_handler(ad.cmd_cancel, commands=["cancel_ad"], state="*")
-    dp.register_message_handler(ad.cmd_show_ad_list, commands="show_ad_list", state="*")
-    dp.register_message_handler(ad.cmd_delete_ad, commands="delete_ad", state="*")
-    dp.register_message_handler(ad.cmd_ad_state, commands="ad_state", state="*")
-    # Хендлеры FSM
-    dp.register_message_handler(ad.handle_media_content, content_types=types.ContentType.PHOTO, state=ad.AdvertiseStates.waiting_for_media) 
-    dp.register_message_handler(ad.handle_ad_text, content_types=types.ContentType.TEXT, state=ad.AdvertiseStates.waiting_for_text)
-    dp.register_message_handler(url.url_handler, lambda message: not re.match(r'format_', message.text.lower()))
-    dp.register_message_handler(url.url_handler, content_types=types.ContentType.TEXT)
-    # Хендлеры callback query
-    dp.register_callback_query_handler(url.handle_format_choice, lambda callback_query: callback_query.data.lower().startswith('format_'))
+dp = Dispatcher()
 
+async def register_routers():
+    dp.include_router(user_router)
 
-if __name__ == '__main__':
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(register_handlers())
-    executor.start_polling(dp, on_startup=helpers.on_startup, on_shutdown=helpers.on_shutdown, skip_updates=True)
-    if USE_AD:
-        loop.run_until_complete(send_advertisements(bot=bot)) 
+async def load_modules(directories, ignore_files = ["__init__.py"]):
+    for directory in directories:
+        for filename in os.listdir(directory):
+            if str(filename).endswith(".py") and filename not in ignore_files:
+                module_name = os.path.splitext(filename)[0]
+                spec = importlib.util.spec_from_file_location(module_name, os.path.join(directory, filename))
+                module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(module)
+
+async def main():
+    print('\033[32mБот запущен!\033[39m')
+    bot = Bot(TOKEN, parse_mode=ParseMode.MARKDOWN)
+    await register_routers()
+    dirs = ["./bot/user/handlers/commands", "./bot/user/handlers/messages", "./bot/user/handlers/callbacks"]
+    await load_modules(dirs)
+    await dp.start_polling(bot)
+
+if __name__ == "__main__":
+    logger = Logger()
+    asyncio.run(main())

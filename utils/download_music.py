@@ -2,14 +2,17 @@ import logging
 import os
 import requests
 import yt_dlp
-from aiogram import types
+from aiogram.types import FSInputFile
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 from youtubesearchpython import VideosSearch
-from config.secrets import spotify_client_id, spotify_secret
+from config.config_manager import ConfigManager
 from PIL import Image
 from io import BytesIO
 
+config_manager = ConfigManager()
+spotify_client_id = config_manager.get_config_value('SpotifyAuth', 'spotify_client_id')
+spotify_secret = config_manager.get_config_value('SpotifyAuth', 'spotify_secret')
 auth_manager = SpotifyClientCredentials(client_id=spotify_client_id, client_secret=spotify_secret)
 spotify = spotipy.Spotify(auth_manager=auth_manager)
 
@@ -49,14 +52,13 @@ async def download_soundcloud(url, output_path="downloads", message=None):
 
                         cropped_image.save(f"{thumbnail_filename}.jpg")
 
-        await message.answer_audio(audio=types.InputFile(filename), thumb=types.InputFile(f"{thumbnail_filename}.jpg"))
+        await message.answer_audio(audio=FSInputFile(filename), thumb=FSInputFile(f"{thumbnail_filename}.jpg"))
 
         os.remove(filename)
         os.remove(f"{thumbnail_filename}.jpg")
     except Exception as e:
         logging.error(f"Error downloading YouTube Audio: {str(e)}")
-        logging.error(f"HTTP response: {e.response.text if e.response else 'No response'}")
-        await message.answer(text="Ошибка при скачивании с SoundCloud")
+        await message.answer(text="Ошибка при скачивании с SoundCloud.")
 
 async def download_spotify(url, output_path="downloads", message=None):
     result = spotify.track(url)
@@ -102,14 +104,13 @@ async def download_spotify(url, output_path="downloads", message=None):
 
                         cropped_image.save(f"{thumbnail_filename}.jpg")
 
-        await message.answer_audio(audio=types.InputFile(filename), thumb=types.InputFile(f"{thumbnail_filename}.jpg"))
+        await message.answer_audio(audio=FSInputFile(filename), thumb=FSInputFile(f"{thumbnail_filename}.jpg"))
 
         os.remove(filename)
         os.remove(f"{thumbnail_filename}.jpg")
     except Exception as e:
         logging.error(f"Error downloading YouTube Audio: {str(e)}")
-        logging.error(f"HTTP response: {e.response.text if e.response else 'No response'}")
-        await message.answer(text="Ошибка при скачивании с Spotify")
+        await message.answer(text="Ошибка при скачивании с Spotify.")
 
 async def download_apple_music(url, output_path="downloads", message=None):
     song_id = url.split('i=')[-1]
@@ -154,7 +155,7 @@ async def download_apple_music(url, output_path="downloads", message=None):
                     with open(thumbnail_filename, 'wb') as thumbnail_file:
                         thumbnail_file.write(thumbnail_response.content)
 
-                await message.answer_audio(audio=types.InputFile(filename), thumb=types.InputFile(thumbnail_filename))
+                await message.answer_audio(audio=FSInputFile(filename), thumb=FSInputFile(thumbnail_filename))
 
                 os.remove(filename)
                 os.remove(thumbnail_filename)
@@ -164,5 +165,4 @@ async def download_apple_music(url, output_path="downloads", message=None):
 
     except Exception as e:
         logging.error(f"Error downloading YouTube Audio: {str(e)}")
-        logging.error(f"HTTP response: {e.response.text if e.response else 'No response'}")
         await message.answer(text="Ошибка при скачивании с Apple Music")

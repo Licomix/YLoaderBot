@@ -1,0 +1,14 @@
+{
+    "Bot": {
+        "BotToken": "Bot Token"
+    },
+
+    "SpotifyAuth":{
+        "spotify_client_id": "",
+        "spotify_secret": ""
+    },
+
+    "Logging": {
+        "LoggingDir": "logs"
+    }
+}

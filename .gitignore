@@ -1,23 +1,4 @@
-tests
-logs/*
-media/*
-database/bot.db
-<<<<<<< HEAD
-config/secrets.py
-/Python
-.idea
-=======
-config/secrets.ini
-bot/__pycache__
-bot/handlers/__pycache__
-bot/admin/__pycache__
-config/__pycache__
-database/__pycache__
-utils/__pycache__
-<<<<<<< FlacSy
-.cache
-=======
->>>>>>> main
->>>>>>> main
-config/.env
-.DS_Store
+__pycache__/
+development/config.json
+development/development.db
+logs/log.log
